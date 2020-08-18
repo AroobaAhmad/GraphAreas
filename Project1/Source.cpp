@@ -6,9 +6,7 @@
 using namespace std;
 #define INF INT_MAX 
 
-// tested with sample files only in .txt -- 
-// doesnt deal with negative values yet -- donneeee 
-// doesnt deal with line intersecting another line multiple times --------------- 
+// tested with .txt files
 
 float prec(float var)
 {
@@ -400,27 +398,7 @@ void point_of_intersection(Intersection* I, Graph G1, Graph G2)
 				float intersection_X = prec((c2 - c1) / (m1 - m2));
 				float intersection_Y = prec(m1 * intersection_X + c1);
 
-				/*if (
-					((intersection_X <= G1.Get_Graph_lines()[i].getpoint2().GetX()
-					&& intersection_X >= G1.Get_Graph_lines()[i].getpoint().GetX())
-					&& (intersection_Y <= G1.Get_Graph_lines()[i].getpoint2().GetY()
-					&& intersection_Y >= G1.Get_Graph_lines()[i].getpoint().GetY()))
-					&& (
-					(intersection_X <= G2.Get_Graph_lines()[j].getpoint2().GetX()
-					&& intersection_X >= G2.Get_Graph_lines()[j].getpoint().GetX())
-					&& (intersection_Y <= G2.Get_Graph_lines()[j].getpoint2().GetY()
-					&& intersection_Y >= G2.Get_Graph_lines()[j].getpoint().GetY())
-					))*/
-					/*	if (intersection_X <= G1.Get_Graph_lines()[i].getpoint2().GetX()
-							&& intersection_X >= G1.Get_Graph_lines()[i].getpoint().GetX()
-							&& (intersection_Y <= G1.Get_Graph_lines()[i].getpoint2().GetY()
-								&& intersection_Y >= G1.Get_Graph_lines()[i].getpoint().GetY()))
-						{
-							if (intersection_X <= G2.Get_Graph_lines()[j].getpoint2().GetX()
-								&& intersection_X >= G2.Get_Graph_lines()[j].getpoint().GetX()
-								&& (intersection_Y <= G2.Get_Graph_lines()[j].getpoint2().GetY()
-									&& intersection_Y >= G2.Get_Graph_lines()[j].getpoint().GetY()))
-								{*/
+				
 				bool neg_grad = false;
 				if (m2 < 0 && m1>0)
 				{
@@ -609,16 +587,6 @@ void calculatearea(Intersection* I, Graph G1, Graph G2, float* area)
 					// else if only one intersection cuts it then {} 
 			if (visitedintersection[i] == false)
 			{
-
-
-				/*if (I->point_of_intersection_1[i + 1].compare(G1.Get_Graph_lines()[k].getpoint() )==true || (I->point_of_intersection_1[i+1].GetX() < G1.Get_Graph_lines()[k].getpoint2().GetX() &&
-					I->point_of_intersection_1[i+1].GetX() > G1.Get_Graph_lines()[k].getpoint().GetX()))
-				{
-					found = true;
-					k = j-1;
-				}*/
-
-
 
 				// point of intersection == point 1 of the line that it lies on
 				if (I->point_of_intersection_1[i].compare(G1.Get_Graph_lines()[j].getpoint()) == true)
