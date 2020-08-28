@@ -128,13 +128,13 @@ public:
 		float m = (y2 - y1) / (x2 - x1); // gradient
 		return m;
 	}
-	float intercept()
+	float intercept(float m)
 	{
 		float x1, x2 = 0;
 		float  y1, y2 = 0;
 		x1 = p1.GetX();
 		y1 = p1.GetY();
-		float m = gradient();
+		//	float m = gradient();
 		float c1 = y1 - (m)* x1;
 		return c1;
 	}
@@ -287,7 +287,12 @@ public:
 		this->p2.SetX(L.getpoint2().GetX());
 		this->p2.SetY(L.getpoint2().GetY());
 	}
-
+	void setpoint2(float m1, float m2)
+	{
+		p2.SetX(m1);
+		p2.SetY(m2);
+	}
+	void setpoint1(float m1, float m2);
 	Point getpoint();
 	Point getpoint2();
 	Line(Point P1, Point P2);
@@ -343,6 +348,11 @@ float Line::GetB()
 Point Line::getpoint()
 {
 	return p1;
+}
+void Line::setpoint1(float m1, float m2)
+{
+	p1.SetX(m1);
+	p1.SetY(m2);
 }
 Point Line::getpoint2()
 {
@@ -462,33 +472,51 @@ public:
 	}
 
 };
-void point_of_intersection(Intersection* I, Graph& G1, Graph& G2, float grad = 0)
+bool find_intersection(Intersection* I, Graph& G1, Graph& G2, int i = 0, bool ffoo = false, float g = 0)
 {
-	bool found = false;
+	Point P1;
+	Point P2;
 	int n = G2.Get_no_of_lines() - 1;
-	/*G2.Get_Graph_lines()[n].getpoint2();
-	Point lastg2;*/
+	bool found = false;
+	bool lost = false;
 	float  v1 = G2.Get_Graph_lines()[n].getpoint2().GetX();
 	float v2 = G2.Get_Graph_lines()[n].getpoint2().GetY();
-	//lastg2.setpoint(G2.Get_Graph_lines()[n].getpoint2().GetX(), G2.Get_Graph_lines()[n].getpoint2().GetY());
-	I->point_of_intersection_1 = new Point[G1.Get_no_of_lines() + 1];
-	//bool found = false;
-	for (int i = 0; i < G1.Get_no_of_lines(); i++) // for each coordinate 
+	float m1 = 0;
+	float m2 = 0;
+
+	for (; i < G1.Get_no_of_lines(); i++) // for each coordinate 
 	{
 		int j = 0;
 
 
 		for (; j < G2.Get_no_of_lines(); j++)
 		{
-
-			float m1 = G1.Get_Graph_lines()[i].gradient(); // returns gradient of the line 
-			float m2 = G2.Get_Graph_lines()[j].gradient(); // returns gradient of the line 
-
+			if (ffoo == false)
+			{
+				m1 = G1.Get_Graph_lines()[i].gradient(); // returns gradient of the line 
+				m2 = G2.Get_Graph_lines()[j].gradient(); // returns gradient of the line 
+			}
+			else
+			{
+				lost = true;
+				m1 = G1.Get_Graph_lines()[i].gradient();
+				m2 = g;
+				/*
+				 G2.Get_Graph_lines()[n].getpoint2().SetX(v1);
+				 G2.Get_Graph_lines()[n].getpoint2().SetY(v2);
+				*/
+				G2.Get_Graph_lines()[n + 1].setpoint1(v1, v2);
+				//G2.Get_Graph_lines()[n+1].getpoint().SetX(v1);
+				//G2.Get_Graph_lines()[n+1].getpoint().SetY(v2);
+				G2.setlines(G2.Get_no_of_lines() + 1); // no of lines increased. 
+				j = n + 1;
+			}
 			if (m1 - m2 != 0) // point of intersection exists
 			{
-
-				float c1 = G1.Get_Graph_lines()[i].intercept();
-				float c2 = G2.Get_Graph_lines()[j].intercept();
+				//float m1 = G1.Get_Graph_lines()[i].gradient();
+				//float m2 = G2.Get_Graph_lines()[j].gradient();
+				float c1 = G1.Get_Graph_lines()[i].intercept(m1);
+				float c2 = G2.Get_Graph_lines()[j].intercept(m2);
 				float intersection_X = prec((c2 - c1) / (m1 - m2));
 				float intersection_Y = prec(m1 * intersection_X + c1);
 
@@ -513,17 +541,28 @@ void point_of_intersection(Intersection* I, Graph& G1, Graph& G2, float grad = 0
 								&& (intersection_Y <= G2.Get_Graph_lines()[j].getpoint2().GetY()
 									&& intersection_Y >= G2.Get_Graph_lines()[j].getpoint().GetY()))
 								{*/
-				bool neg_grad = false;
-				if (G1.Get_Graph_lines()[i].getpoint().GetX() == G2.Get_Graph_lines()[j].getpoint().GetX())
+								//bool neg_grad = false;
+				if (lost == true)
+				{
+					/* P2.SetX(intersection_X);
+					 P2.SetY(intersection_Y);
+					*/
+					G2.Get_Graph_lines()[n + 1].setpoint2(intersection_X, intersection_Y);
+					/*G2.Get_Graph_lines()[n+1].getpoint2().SetX(intersection_X);
+					G2.Get_Graph_lines()[n+1].getpoint2().SetY(intersection_Y);*/
+				}
+				if ((G1.Get_Graph_lines()[i].getpoint().GetX() == G2.Get_Graph_lines()[j].getpoint().GetX()) &&
+					(G1.Get_Graph_lines()[i].getpoint().GetY() == G2.Get_Graph_lines()[j].getpoint().GetY()))
 				{
 					if (j == n)
 						found = true;
+
 					I->point_of_intersection_1[I->no_of_intersections].SetX(intersection_X);
 					I->point_of_intersection_1[I->no_of_intersections].SetY(intersection_Y);
 
 					I->no_of_intersections++;
 				}
-				else if (m2 < 0 && m1>0)
+				else if (m2 <= 0 && m1 >= 0)
 				{
 					if (((intersection_X <= G1.Get_Graph_lines()[i].getpoint2().GetX()
 						&& intersection_X >= G1.Get_Graph_lines()[i].getpoint().GetX())
@@ -544,7 +583,7 @@ void point_of_intersection(Intersection* I, Graph& G1, Graph& G2, float grad = 0
 						I->no_of_intersections++;
 					}
 				}
-				else if (m1 < 0 && m2>0)
+				else if (m1 <= 0 && m2 >= 0)
 
 				{
 					if (((intersection_X <= G1.Get_Graph_lines()[i].getpoint2().GetX()
@@ -567,7 +606,7 @@ void point_of_intersection(Intersection* I, Graph& G1, Graph& G2, float grad = 0
 					}
 
 				}
-				else if (m1 < 0 && m2 < 0)
+				else if (m1 <= 0 && m2 <= 0)
 				{
 					if (
 						((intersection_X <= G1.Get_Graph_lines()[i].getpoint2().GetX()
@@ -625,7 +664,7 @@ void point_of_intersection(Intersection* I, Graph& G1, Graph& G2, float grad = 0
 								{
 									if (j == n)
 										found = true;
-									I->point_of_intersection_1[I->no_of_intersections].SetX(val);
+									I->point_of_intersection_1[I->no_of_intersections].SetX(intersection_X);
 									I->point_of_intersection_1[I->no_of_intersections].SetY(intersection_Y);
 
 									I->no_of_intersections++;
@@ -645,6 +684,21 @@ void point_of_intersection(Intersection* I, Graph& G1, Graph& G2, float grad = 0
 		}
 		//}
 	}
+	return found;
+}
+void point_of_intersection(Intersection* I, Graph& G1, Graph& G2, float grad = 0)
+{
+	bool ffh = false;
+	int n = G2.Get_no_of_lines() - 1;
+	/*G2.Get_Graph_lines()[n].getpoint2();
+	Point lastg2;*/
+	float  v1 = G2.Get_Graph_lines()[n].getpoint2().GetX();
+	float v2 = G2.Get_Graph_lines()[n].getpoint2().GetY();
+
+	//lastg2.setpoint(G2.Get_Graph_lines()[n].getpoint2().GetX(), G2.Get_Graph_lines()[n].getpoint2().GetY());
+	I->point_of_intersection_1 = new Point[G1.Get_no_of_lines() + 1];
+	//bool found = false;
+	bool found = find_intersection(I, G1, G2, 0);
 	if (found == false)
 	{
 		Line L;
@@ -653,28 +707,39 @@ void point_of_intersection(Intersection* I, Graph& G1, Graph& G2, float grad = 0
 		{
 
 
-			for (int i = 0; i < G1.Get_no_of_lines(); i++)
+			for (int i = 0; i < G1.Get_no_of_lines() && ffh == false; i++)
 			{
 
 				if (v1 >= G1.Get_Graph_lines()[i].getpoint().GetX() && v1 <= G1.Get_Graph_lines()[i].getpoint2().GetX())
 				{
 					float m1 = G1.Get_Graph_lines()[i].gradient();
-					float c1 = G1.Get_Graph_lines()[i].intercept();
+					float c1 = G1.Get_Graph_lines()[i].intercept(m1);
 					float y_intercept = m1 * v1 + c1;
 
-
+					ffh = true;
 					I->point_of_intersection_1[I->no_of_intersections].SetX(v1);
 					I->point_of_intersection_1[I->no_of_intersections].SetY(y_intercept);
 					I->no_of_intersections++;
 					//I->setintnum();
 					//L.setpoint(lastg2,p2);
-					G2.AddLine(L);
+					//G2.AddLine(L);
 				}
 			}
 		}
 		else
 		{
-			G2.setlines(G2.Get_no_of_lines() + 1);
+
+			//G2.setlines(G2.Get_no_of_lines() + 1); // no of lines increased. 
+			for (int i = 0; i < G1.Get_no_of_lines() && ffh == false; i++)
+			{
+				if (G1.Get_Graph_lines()[i].getpoint().GetX() >= v1)
+				{
+					find_intersection(I, G1, G2, i, true, grad);
+					ffh = true;
+					//G2.AddLine(L);
+				}
+			}
+
 
 		}
 	}
@@ -692,7 +757,7 @@ int checkintersections(Intersection* I, Line l)
 	}
 	return n;
 }
-void calculatearea(Intersection*& I, Graph& G1, Graph& G2, float*& area)
+void calculatearea(Intersection*& I, Graph& G1, Graph& G2, float*& area, float grad = 0)
 {
 
 	int counter = 0;
@@ -721,6 +786,7 @@ void calculatearea(Intersection*& I, Graph& G1, Graph& G2, float*& area)
 	int k = 0;
 	int n1 = G1.Get_no_of_lines();
 	int n2 = G2.Get_no_of_lines();
+
 
 	float lastg1 = G1.Get_Graph_lines()[n1 - 1].getpoint2().GetX();
 	float lastg2 = G2.Get_Graph_lines()[n2 - 1].getpoint2().GetX();
@@ -767,9 +833,12 @@ void calculatearea(Intersection*& I, Graph& G1, Graph& G2, float*& area)
 				if (I->point_of_intersection_1[i].GetX() == G1.Get_Graph_lines()[j].getpoint().GetX())
 				{ // same point of intersection as a cordinate 
 					//calculate area
-					var = G1.Get_Graph_lines()[j].calculatearea_line();
-					totalarea = var + totalarea;
-					area[counter] = var + area[counter];
+					if (grad != 0)
+					{
+						var = G1.Get_Graph_lines()[j].calculatearea_line();
+						totalarea = var + totalarea;
+						area[counter] = var + area[counter];
+					}
 					visited1[j] = true;
 				}
 				// point of intersection == point 2 of the line that it lies on   || point 2 of the line is larger than second graph x
@@ -913,9 +982,9 @@ int main()
 {
 	Point* points = new Point[100];
 	fstream fin;
-	fin.open("graph200.txt");
+	//fin.open("graph200.txt");
 	//fin.open("sam.txt");
-	//fin.open("sampleg.txt");
+	fin.open("sampleg.txt");
 	//fin.open("s.txt");
 	int i = 0;
 	float y = 0; float x = 0;
@@ -930,7 +999,7 @@ int main()
 		points[i].SetX(x);
 		points[i].SetY(y);
 		totalpoints++; // count the number of coordinates 
-		points[i].printpoint();
+		//points[i].printpoint();
 		i++;
 
 	}
@@ -940,15 +1009,15 @@ int main()
 	{
 		//lines[i - 1] = new Line;
 		lines[i - 1].setpoint(points[i - 1], points[i]);
-		lines[i - 1].printline();
+		//lines[i - 1].printline();
 	}
 
 
 
 	Point* points2 = new Point[100];
 	fstream fin2;
-	fin2.open("graph202.txt");
-	//fin2.open("samplet.txt");
+	//fin2.open("graph202.txt");
+	fin2.open("samplet.txt");
 	//fin2.open("sam2.txt");
 	//fin2.open("sa2.txt");
 	int i2 = 0;
@@ -964,7 +1033,7 @@ int main()
 		points2[i2].SetX(x2);
 		points2[i2].SetY(y2);
 		totalpoints2++; // count the number of coordinates 
-		points2[i2].printpoint();
+		//points2[i2].printpoint();
 		i2++;
 
 	}
@@ -974,17 +1043,17 @@ int main()
 	{
 		//lines[i - 1] = new Line;
 		lines2[i - 1].setpoint(points2[i - 1], points2[i]);
-		lines2[i - 1].printline();
+		//lines2[i - 1].printline();
 	}
 
-	// 2 Graphs initialised
+	// 2-------------- Graphs initialised
 
 	Intersection* I = new Intersection;
 	Graph Graph1(lines, totalpoints - 1);
 	Graph Graph2(lines2, totalpoints2);
 	Graph2.setlines(totalpoints2 - 1);
-
-	point_of_intersection(I, Graph1, Graph2);
+	float grad = -1;
+	point_of_intersection(I, Graph1, Graph2, grad);
 
 	if (I->no_of_intersections == 0)
 		cout << "\n\nSorry! The graphs do not intersect\n\n";
@@ -1004,15 +1073,15 @@ int main()
 		area2[m] = 0;
 	}
 	//	cout << 123456;
-	calculatearea(I, Graph1, Graph2, area1);
-	calculatearea(I, Graph2, Graph1, area2);
+	calculatearea(I, Graph1, Graph2, area1, grad);
+	calculatearea(I, Graph2, Graph1, area2, grad);
 
 	cout << endl;
-	for (int i = 0; i < I->no_of_intersections - 1; i++)
-		cout << area1[i] << " ";
-	cout << endl;
-	for (int i = 0; i < I->no_of_intersections - 1; i++)
-		cout << area2[i] << " ";
+	/* for (int i = 0; i < I->no_of_intersections - 1; i++)
+		 cout << area1[i] << " " ;
+	 cout << endl;
+	 for (int i = 0; i < I->no_of_intersections-1 ; i++)
+		 cout << area2[i] << " ";*/
 
 	float req1 = 0;
 	float req2 = 0;
@@ -1060,5 +1129,5 @@ int main()
 	}
 
 
-	cout << reqarea;
+	cout << reqarea << endl << endl;
 }
